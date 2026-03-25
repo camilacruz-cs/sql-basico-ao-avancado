@@ -1,0 +1,87 @@
+-- =====================================================
+-- DESAFIO DO MÓDULO: FUNDAMENTOS E OPERADORES
+-- =====================================================
+-- Descrição: Aplicação prática de cálculos, filtros e operadores em SQL
+-- Base: schema sales
+
+
+-- =====================================================
+-- Exercício 1: Cálculo de salários mínimos
+-- Objetivo: calcular quantos salários mínimos cada cliente recebe
+-- Técnica: coluna calculada
+-- =====================================================
+
+SELECT 
+    email, 
+    income,
+    (income / 1200) AS salario_minimo
+FROM sales.customers;
+
+
+-- =====================================================
+-- Exercício 2: Classificação de renda
+-- Objetivo: identificar clientes com renda acima de 5 salários mínimos
+-- Técnica: expressão booleana
+-- =====================================================
+
+SELECT 
+    email, 
+    income,
+    (income / 1200) AS salario_minimo,
+    (income / 1200) > 5 AS acima_5_salarios
+FROM sales.customers;
+
+
+-- =====================================================
+-- Exercício 3: Filtro por faixa salarial
+-- Objetivo: selecionar clientes que ganham entre 4 e 5 salários mínimos
+-- Técnica: BETWEEN
+-- =====================================================
+
+SELECT 
+    email, 
+    income,
+    (income / 1200) AS salario_minimo,
+    (income / 1200) > 5 AS acima_5_salarios
+FROM sales.customers
+WHERE income BETWEEN 4800 AND 6000;
+
+
+-- =====================================================
+-- Exercício 4: Filtro por múltiplos estados
+-- Objetivo: selecionar clientes de MG e MT
+-- Técnica: IN
+-- =====================================================
+
+SELECT 
+    email, 
+    city, 
+    state 
+FROM sales.customers
+WHERE state IN ('MG', 'MT');
+
+
+-- =====================================================
+-- Exercício 5: Exclusão de estado
+-- Objetivo: selecionar clientes fora de SP
+-- Técnica: NOT IN
+-- =====================================================
+
+SELECT 
+    email, 
+    city, 
+    state 
+FROM sales.customers
+WHERE state NOT IN ('SP');
+
+
+-- =====================================================
+-- Exercício 6: Busca por padrão
+-- Objetivo: encontrar cidades que começam com a letra 'Z'
+-- Técnica: LIKE
+-- =====================================================
+
+SELECT 
+    city
+FROM temp_tables.regions
+WHERE city LIKE 'Z%';
