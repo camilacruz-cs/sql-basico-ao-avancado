@@ -1,0 +1,43 @@
+-- =====================================================
+-- DESAFIO DO MÓDULO: FUNDAMENTOS
+-- =====================================================
+-- Descrição: Aplicação prática dos principais comandos básicos em SQL
+-- Base: schema sales
+
+
+-- =====================================================
+-- Exercício 1: Cidades distintas em Minas Gerais
+-- Objetivo: identificar as cidades únicas do estado de MG
+-- Técnica: DISTINCT + WHERE + ORDER BY
+-- =====================================================
+
+SELECT DISTINCT city
+FROM sales.customers
+WHERE state = 'MG'
+ORDER BY city;
+
+
+-- =====================================================
+-- Exercício 2: Compras mais recentes
+-- Objetivo: identificar os 10 pagamentos mais recentes
+-- Técnica: filtro com IS NOT NULL + ORDER BY + LIMIT
+-- =====================================================
+
+SELECT visit_id 
+FROM sales.funnel 
+WHERE paid_date IS NOT NULL
+ORDER BY paid_date DESC
+LIMIT 10;
+
+
+-- =====================================================
+-- Exercício 3: Clientes com maior score
+-- Objetivo: analisar os clientes mais bem pontuados nascidos após 2000
+-- Técnica: filtro por data + ORDER BY + LIMIT
+-- =====================================================
+
+SELECT *
+FROM sales.customers
+WHERE birth_date >= '2000-01-01'
+ORDER BY score DESC
+LIMIT 10;
