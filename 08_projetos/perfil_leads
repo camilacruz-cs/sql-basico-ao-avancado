@@ -1,0 +1,218 @@
+# 📊 Projeto 2 - Análise de Leads no E-commerce
+
+## 🎯 Objetivo
+
+Criar um dashboard para analisar as principais características dos leads que visitam o e-commerce, identificando padrões demográficos, profissionais e comportamentais.
+
+---
+
+## 📁 Base de Dados
+
+* `sales.customers` → dados dos leads
+* `sales.funnel` → interações no site
+* `sales.products` → informações dos veículos
+* `temp_tables.ibge_genders` → base auxiliar de gênero
+
+---
+
+## 📊 Análises Desenvolvidas
+
+---
+
+## 🧑‍🤝‍🧑 Query 1 - Gênero dos Leads
+
+SELECT 
+    CASE 
+        WHEN ibge.gender = 'male' THEN 'homens'
+        WHEN ibge.gender = 'female' THEN 'mulheres'
+        ELSE 'não identificado'
+    END AS genero,
+    
+    COUNT(*) AS leads
+
+FROM sales.customers AS cus
+
+LEFT JOIN temp_tables.ibge_genders AS ibge
+    ON LOWER(cus.first_name) = LOWER(ibge.first_name)
+
+GROUP BY genero;
+
+
+---
+
+## 💼 Query 2 - Status Profissional
+
+
+SELECT 	
+    CASE 
+        WHEN professional_status = 'freelancer' THEN 'freelancer'
+        WHEN professional_status = 'retired' THEN 'aposentado'
+        WHEN professional_status = 'clt' THEN 'clt'
+        WHEN professional_status = 'self_employed' THEN 'autônomo'
+        WHEN professional_status = 'other' THEN 'outros'
+        WHEN professional_status = 'businessman' THEN 'empresário(a)'
+        WHEN professional_status = 'civil_servant' THEN 'funcionário(a) público(a)'
+        WHEN professional_status = 'student' THEN 'estudante'
+        ELSE 'não informado'
+    END AS status_profissional,
+
+    COUNT(*)::FLOAT / (SELECT COUNT(*) FROM sales.customers) AS leads_pct
+
+FROM sales.customers
+
+GROUP BY status_profissional
+ORDER BY leads_pct DESC;
+
+
+---
+
+## 🎂 Query 3 - Faixa Etária
+
+SELECT 
+    CASE
+        WHEN idade < 20 THEN '0-20'
+        WHEN idade < 40 THEN '20-40'
+        WHEN idade < 60 THEN '40-60'
+        WHEN idade < 80 THEN '60-80'
+        ELSE '80+'
+    END AS faixa_etaria,
+
+    COUNT(*)::FLOAT / (SELECT COUNT(*) FROM sales.customers) AS leads_pct
+
+FROM (
+    SELECT 
+        EXTRACT(YEAR FROM AGE(current_date, birth_date)) AS idade
+    FROM sales.customers
+) t
+
+GROUP BY faixa_etaria
+ORDER BY faixa_etaria;
+
+
+---
+
+## 💰 Query 4 - Faixa Salarial
+
+
+SELECT 
+    CASE
+        WHEN income < 5000 THEN '0-5k'
+        WHEN income < 10000 THEN '5k-10k'
+        WHEN income < 15000 THEN '10k-15k'
+        WHEN income < 20000 THEN '15k-20k'
+        ELSE '20k+'
+    END AS faixa_salarial,
+        
+    COUNT(*)::FLOAT / (SELECT COUNT(*) FROM sales.customers) AS leads_pct,
+
+    CASE
+        WHEN income < 5000 THEN 1
+        WHEN income < 10000 THEN 2
+        WHEN income < 15000 THEN 3
+        WHEN income < 20000 THEN 4
+        ELSE 5
+    END AS ordem
+
+FROM sales.customers
+
+GROUP BY faixa_salarial, ordem
+ORDER BY ordem;
+
+
+---
+
+## 🚗 Query 5 - Classificação dos Veículos Visitados
+
+WITH classificacao AS (
+    SELECT
+        CASE
+            WHEN EXTRACT(YEAR FROM visit_page_date) - pro.model_year <= 2 THEN 'novo'
+            ELSE 'seminovo'
+        END AS classificacao_veiculo
+    FROM sales.funnel AS fun
+    LEFT JOIN sales.products AS pro
+        ON fun.product_id = pro.product_id	
+)
+
+SELECT
+    classificacao_veiculo,
+    COUNT(*) AS visitas
+
+FROM classificacao
+GROUP BY classificacao_veiculo;
+
+
+---
+
+## 🚘 Query 6 - Idade dos Veículos Visitados
+
+
+WITH base AS (
+    SELECT
+        EXTRACT(YEAR FROM visit_page_date) - pro.model_year AS idade_veiculo
+    FROM sales.funnel AS fun
+    LEFT JOIN sales.products AS pro
+        ON fun.product_id = pro.product_id	
+),
+
+faixas AS (
+    SELECT
+        CASE
+            WHEN idade_veiculo <= 2 THEN 'até 2 anos'
+            WHEN idade_veiculo <= 4 THEN '2 a 4 anos'
+            WHEN idade_veiculo <= 6 THEN '4 a 6 anos'
+            WHEN idade_veiculo <= 8 THEN '6 a 8 anos'
+            WHEN idade_veiculo <= 10 THEN '8 a 10 anos'
+            ELSE '10+ anos'
+        END AS faixa,
+        
+        CASE
+            WHEN idade_veiculo <= 2 THEN 1
+            WHEN idade_veiculo <= 4 THEN 2
+            WHEN idade_veiculo <= 6 THEN 3
+            WHEN idade_veiculo <= 8 THEN 4
+            WHEN idade_veiculo <= 10 THEN 5
+            ELSE 6
+        END AS ordem
+    FROM base
+)
+
+SELECT
+    faixa,
+    COUNT(*)::FLOAT / (SELECT COUNT(*) FROM sales.funnel) AS visitas_pct,
+    ordem
+
+FROM faixas
+GROUP BY faixa, ordem
+ORDER BY ordem;
+
+---
+
+## 🚗 Query 7 - Veículos Mais Visitados por Marca
+
+SELECT
+    pro.brand,
+    pro.model,
+    COUNT(*) AS visitas
+
+FROM sales.funnel AS fun
+LEFT JOIN sales.products AS pro
+    ON fun.product_id = pro.product_id
+
+GROUP BY pro.brand, pro.model
+ORDER BY visitas DESC
+LIMIT 10;
+
+---
+
+## 📊 Insights de Negócio
+
+Com essas análises, é possível:
+
+* Entender o perfil demográfico dos leads
+* Identificar padrões de renda e profissão
+* Analisar preferências de veículos (novos vs seminovos)
+* Mapear comportamento de navegação
+* Apoiar estratégias de marketing e segmentação
+
+
