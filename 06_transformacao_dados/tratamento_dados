@@ -1,0 +1,82 @@
+-- =====================================================
+-- MÓDULO: TRATAMENTO DE DADOS
+-- =====================================================
+-- Descrição: Conversão de tipos, tratamento de nulos e padronização de texto
+
+
+-- =====================================================
+-- 1. Conversão de tipos (CAST e ::)
+-- =====================================================
+
+-- Texto → Data (operador ::)
+SELECT 
+    '2021-10-01'::DATE - '2021-02-01'::DATE AS diferenca_dias;
+
+-- Texto → Data (CAST)
+SELECT 
+    CAST('2021-10-01' AS DATE) - CAST('2021-02-01' AS DATE) AS diferenca_dias;
+
+-- Texto → Número
+SELECT 
+    '100'::INT - '10'::INT AS resultado;
+
+-- Número → Texto
+SELECT 
+    REPLACE(112122::TEXT, '1', 'A') AS texto_tratado;
+
+
+-- =====================================================
+-- 2. Agrupamento com CASE WHEN
+-- =====================================================
+-- Objetivo: segmentar clientes por faixa de renda
+
+WITH faixa_renda_base AS ( 
+    SELECT
+        income, 
+        CASE 	
+            WHEN income < 5000 THEN '0-5000'
+            WHEN income >= 5000 AND income < 10000 THEN '5000-10000'
+            WHEN income >= 10000 AND income < 15000 THEN '10000-15000'
+            ELSE '15000+'
+        END AS faixa_renda
+    FROM sales.customers
+)
+
+SELECT 
+    faixa_renda, 
+    COUNT(*) AS total_clientes
+FROM faixa_renda_base
+GROUP BY faixa_renda
+ORDER BY faixa_renda;
+
+
+-- =====================================================
+-- 3. Tratamento de valores nulos
+-- =====================================================
+-- Objetivo: substituir população nula pela média geral
+
+SELECT 
+    *, 
+    COALESCE(
+        population, 
+        (SELECT AVG(population) FROM temp_tables.regions)
+    ) AS populacao_ajustada
+FROM temp_tables.regions;
+
+
+-- =====================================================
+-- 4. Padronização de texto
+-- =====================================================
+-- Objetivo: garantir consistência de dados textuais
+
+-- Uppercase
+SELECT UPPER('São Paulo') = 'SÃO PAULO';
+
+-- Lowercase
+SELECT LOWER('São Paulo') = 'são paulo';
+
+-- Remover espaços extras
+SELECT TRIM('SÃO PAULO     ') = 'SÃO PAULO';
+
+-- Substituição de texto
+SELECT REPLACE('SAO PAULO', 'SAO', 'SÃO') = 'SÃO PAULO';
