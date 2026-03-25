@@ -1,0 +1,93 @@
+-- =====================================================
+-- MÓDULO: MANIPULAÇÃO DE DATAS
+-- =====================================================
+-- Descrição: Operações com datas (soma, truncagem, extração e diferença)
+
+
+-- =====================================================
+-- 1. Soma de datas com INTERVAL
+-- =====================================================
+-- Objetivo: adicionar unidades de tempo à data atual
+
+SELECT 
+    CURRENT_DATE + INTERVAL '10 days' AS mais_10_dias,
+    CURRENT_DATE + INTERVAL '2 weeks' AS mais_2_semanas,
+    CURRENT_DATE + INTERVAL '3 months' AS mais_3_meses;
+
+
+-- =====================================================
+-- 2. Agrupamento por mês com DATE_TRUNC
+-- =====================================================
+-- Objetivo: calcular visitas mensais
+
+SELECT 
+    DATE_TRUNC('month', visit_page_date)::DATE AS mes_visita,
+    COUNT(*) AS total_visitas
+FROM sales.funnel 
+GROUP BY mes_visita
+ORDER BY mes_visita;
+
+
+-- =====================================================
+-- 3. Extração de partes da data com EXTRACT
+-- =====================================================
+-- Objetivo: identificar dia da semana com mais visitas
+
+SELECT 	
+    EXTRACT(DOW FROM visit_page_date) AS dia_da_semana,
+    COUNT(*) AS total_visitas
+FROM sales.funnel
+GROUP BY dia_da_semana
+ORDER BY total_visitas DESC;
+
+
+-- =====================================================
+-- 4. Diferença entre datas
+-- =====================================================
+-- Objetivo: calcular diferença entre datas em múltiplas unidades
+
+-- Dias
+SELECT CURRENT_DATE - DATE '2018-06-01' AS diferenca_dias;
+
+-- Semanas
+SELECT (CURRENT_DATE - DATE '2018-06-01') / 7 AS diferenca_semanas;
+
+-- Meses (aproximado)
+SELECT (CURRENT_DATE - DATE '2018-06-01') / 30 AS diferenca_meses;
+
+-- Anos (aproximado)
+SELECT (CURRENT_DATE - DATE '2018-06-01') / 365 AS diferenca_anos;
+
+
+-- =====================================================
+-- 5. Função customizada DATEDIFF (PostgreSQL)
+-- =====================================================
+-- Objetivo: criar função reutilizável para cálculo de datas
+
+CREATE OR REPLACE FUNCTION datediff(
+    unidade VARCHAR, 
+    data_inicial DATE, 
+    data_final DATE
+)
+RETURNS INTEGER
+LANGUAGE SQL
+AS 
+$$
+    SELECT
+        CASE 
+            WHEN unidade IN ('d', 'day', 'days') THEN (data_final - data_inicial)
+            WHEN unidade IN ('w', 'week', 'weeks') THEN (data_final - data_inicial) / 7
+            WHEN unidade IN ('m', 'month', 'months') THEN (data_final - data_inicial) / 30
+            WHEN unidade IN ('y', 'year', 'years') THEN (data_final - data_inicial) / 365
+        END
+$$;
+
+-- Exemplo de uso
+SELECT datediff('m', DATE '2018-06-01', CURRENT_DATE);
+
+
+-- =====================================================
+-- 6. Remover função
+-- =====================================================
+
+DROP FUNCTION IF EXISTS datediff;
