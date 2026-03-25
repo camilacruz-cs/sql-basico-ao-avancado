@@ -1,0 +1,54 @@
+-- =====================================================
+-- DESAFIO DO MÓDULO: ANÁLISE COM JOINS
+-- =====================================================
+-- Descrição: Análise de comportamento de usuários e distribuição geográfica
+-- Base: sales + temp_tables
+
+
+-- =====================================================
+-- Exercício 1: Marcas mais visitadas
+-- Objetivo: identificar quais marcas geram mais interesse no site
+-- Técnica: JOIN + agregação
+-- =====================================================
+
+SELECT 
+    pro.brand,
+    COUNT(fun.visit_page_date) AS total_visitas
+FROM sales.funnel AS fun
+LEFT JOIN sales.products AS pro
+    ON fun.product_id = pro.product_id
+GROUP BY pro.brand
+ORDER BY total_visitas DESC;
+
+
+-- =====================================================
+-- Exercício 2: Lojas mais visitadas
+-- Objetivo: identificar quais lojas recebem mais tráfego
+-- Técnica: JOIN + agregação
+-- =====================================================
+
+SELECT 
+    sto.store_name,
+    COUNT(fun.visit_page_date) AS total_visitas
+FROM sales.funnel AS fun
+LEFT JOIN sales.stores AS sto
+    ON fun.store_id = sto.store_id
+GROUP BY sto.store_name
+ORDER BY total_visitas DESC;
+
+
+-- =====================================================
+-- Exercício 3: Distribuição de clientes por porte de cidade
+-- Objetivo: entender o perfil geográfico da base de clientes
+-- Técnica: JOIN + normalização de texto + agregação
+-- =====================================================
+
+SELECT 
+    reg.size AS porte_cidade,
+    COUNT(*) AS total_clientes
+FROM sales.customers AS cus 
+LEFT JOIN temp_tables.regions AS reg 
+    ON LOWER(cus.city) = LOWER(reg.city)
+   AND LOWER(cus.state) = LOWER(reg.state)
+GROUP BY reg.size
+ORDER BY total_clientes DESC;
