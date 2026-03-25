@@ -1,0 +1,23 @@
+-- =====================================================
+-- 3. COLUNAS: ALTER TABLE
+-- =====================================================
+
+-- Inserção de coluna
+ALTER TABLE sales.customers
+ADD COLUMN customer_age INT;
+
+-- Atualização da coluna
+UPDATE sales.customers
+SET customer_age = datediff('y', birth_date, CURRENT_DATE);
+
+-- Alteração do tipo da coluna
+ALTER TABLE sales.customers
+ALTER COLUMN customer_age TYPE VARCHAR;
+
+-- Renomear coluna
+ALTER TABLE sales.customers 
+RENAME COLUMN customer_age TO age;
+
+-- Deletar coluna
+ALTER TABLE sales.customers 
+DROP COLUMN age;
