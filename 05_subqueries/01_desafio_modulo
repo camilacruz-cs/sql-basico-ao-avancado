@@ -1,0 +1,20 @@
+-- =====================================================
+-- Exercício: Número de visitas por cliente
+-- Objetivo: calcular o total de visitas realizadas por cada cliente
+-- =====================================================
+
+WITH visitas_por_cliente AS (
+    SELECT 
+        customer_id,
+        COUNT(*) AS total_visitas
+    FROM sales.funnel
+    GROUP BY customer_id
+)
+
+SELECT 
+    cus.*,
+    COALESCE(vpc.total_visitas, 0) AS total_visitas
+FROM sales.customers AS cus
+LEFT JOIN visitas_por_cliente AS vpc
+    ON cus.customer_id = vpc.customer_id
+ORDER BY total_visitas DESC;
